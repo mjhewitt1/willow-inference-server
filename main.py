@@ -1320,7 +1320,7 @@ async def asr(request: Request, audio_file: UploadFile, response: Response,
 async def willow(request: Request, response: Response, model: Optional[str] = whisper_model_default,
                  detect_language: Optional[bool] = detect_language, beam_size: Optional[int] = beam_size,
                  force_language: Optional[str] = None, translate: Optional[bool] = False,
-                 save_audio: Optional[bool] = False, stats: Optional[bool] = False,
+                 save_audio: Optional[bool] = True, stats: Optional[bool] = False,
                  voice_auth: Optional[bool] = False):
     logger.debug(f'FASTAPI: Got WILLOW request for model {model} beam size {beam_size} '
                  f'language detection {detect_language}')
