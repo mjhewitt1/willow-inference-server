@@ -147,11 +147,6 @@ dep_check() {
     # Temp for hacky willow config
     mkdir -p nginx/static/audio
 
-    if [ ! -d models ]; then
-        echo "Models not found. You need to run ./utils.sh download-models - exiting"
-        exit 1
-    fi
-
     # Make sure we have it just in case
     mkdir -p speakers/custom_tts speakers/voice_auth nginx/cache cache
 
@@ -298,8 +293,6 @@ gunicorn)
 install)
     check_host
     build_docker
-    clean_models
-    download_models
     clean_cache
     echo "Install complete - you can now start with ./utils.sh run"
 ;;

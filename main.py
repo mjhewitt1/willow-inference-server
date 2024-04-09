@@ -1223,8 +1223,8 @@ if settings.basic_auth_pass and settings.basic_auth_user:
 
 @app.on_event("startup")
 def startup_event():
-    load_models()
-    warm_models()
+    #load_models()
+    #warm_models()
     logger.info(f"{settings.name} is ready for requests!")
 
 
@@ -1321,7 +1321,7 @@ async def willow(request: Request, response: Response, model: Optional[str] = wh
                  detect_language: Optional[bool] = detect_language, beam_size: Optional[int] = beam_size,
                  force_language: Optional[str] = None, translate: Optional[bool] = False,
                  save_audio: Optional[bool] = True, stats: Optional[bool] = False,
-                 voice_auth: Optional[bool] = False):
+                 voice_auth: Optional[bool] = False, filename: Optional[str] = 'willow'):
     logger.debug(f'FASTAPI: Got WILLOW request for model {model} beam size {beam_size} '
                  f'language detection {detect_language}')
     task = "transcribe"
@@ -1343,6 +1343,7 @@ async def willow(request: Request, response: Response, model: Optional[str] = wh
     channel = request.headers.get('x-audio-channel', '').lower()
     codec = request.headers.get('x-audio-codec', '').lower()
     willow_id = request.headers.get('x-willow-id', '').lower()
+    filename = request.headers.get('x-filename', '').lower()
 
     logger.debug(f'WILLOW: Audio information: sample rate: {sample_rate}, bits: {bits}, channel(s): {channel}, '
                  f'codec: {codec}')
@@ -1375,7 +1376,7 @@ async def willow(request: Request, response: Response, model: Optional[str] = wh
 
     # Save received audio if requested - defaults to false
     if save_audio:
-        save_filename = 'nginx/static/audio/willow.wav'
+        save_filename = f'nginx/static/audio/{filename}.wav'
         logger.debug(f"WILLOW: Saving audio to {save_filename}")
         with open(save_filename, 'wb') as f:
             f.write(audio_file.getbuffer())
@@ -1393,29 +1394,12 @@ async def willow(request: Request, response: Response, model: Optional[str] = wh
         else:
             logger.debug("WILLOW: Unknown or unauthorized voice - returning HTTP 406")
             return PlainTextResponse('Unauthorized voice', status_code=406)
-
     # Do Whisper
-    language, results, infer_time, translation, infer_speedup, audio_duration = do_whisper(audio_file, model,
-                                                                                           beam_size, task,
-                                                                                           detect_language,
-                                                                                           force_language, translate)
-
-    # Create final response
-    if stats:
-        if voice_auth:
-            final_response = {"infer_time": infer_time, "infer_speedup": infer_speedup,
-                              "audio_duration": audio_duration, "language": language, "text": results,
-                              "voice_auth": sv_results, "speaker_status": speaker_status}
-        else:
-            final_response = {"infer_time": infer_time, "infer_speedup": infer_speedup,
-                              "audio_duration": audio_duration, "language": language, "text": results}
-    else:
-        final_response = {"language": language, "text": results}
-
-    # Handle translation in one response
-    if translation:
-        final_response['translation'] = translation
-
+    # language, results, infer_time, translation, infer_speedup, audio_duration = do_whisper(audio_file, model,
+                                                                                    #       beam_size, task,
+                                                                                    #       detect_language,
+                                                                                    #       force_language, translate)
+    final_response = {"save_file": save_filename}
     return JSONResponse(content=final_response)
 
 
